@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CampusPulse — QR-Powered Smart Campus Issue Management</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300f2fe'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+  <!-- Chart.js for real-time dashboard analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- =========================================================================
+       SCREEN 1: WELCOME & LOGIN SCREEN
+       ========================================================================= -->
+  <div id="screen-login" class="login-screen-wrapper">
+    <div class="login-grid">
+      <!-- Left Hero Banner -->
+      <div class="login-hero">
+        <div>
+          <div class="brand" style="border:none; padding:0; margin-bottom: 28px;">
+            <div class="brand-icon">⚡</div>
+            <div>
+              <div class="brand-title" style="font-size: 1.35rem;">CampusPulse</div>
+              <div style="font-size: 0.78rem; color: var(--cyan-primary); letter-spacing: 0.05em; text-transform: uppercase;">Smarter Campus. Happier You.</div>
+            </div>
+          </div>
+          <h1 style="font-size: 2.25rem; line-height: 1.2; margin-bottom: 16px;">
+            Report Issues.<br>
+            Track Progress.<br>
+            <span class="glow-text">Build a Better Campus.</span>
+          </h1>
+          <p style="font-size: 0.95rem; max-width: 380px;">
+            CampusPulse helps students and staff report and resolve campus problems quickly, transparently, and efficiently.
+          </p>
+        </div>
+
+        <div>
+          <div class="hero-pills">
+            <div class="hero-pill">⚡ Report Issues</div>
+            <div class="hero-pill">🔄 Track Progress</div>
+            <div class="hero-pill">🏛️ Better Campus</div>
+          </div>
+          <div style="margin-top: 24px; font-size: 0.75rem; color: var(--text-dim);">
+            File-based H2 &bull; Deterministic Fallback &bull; Java QR Generation
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Login Card -->
+      <div class="login-form-side">
+        <!-- Login Form State -->
+        <div id="auth-login-box">
+          <div style="margin-bottom: 20px;">
+            <h2 style="font-size: 1.6rem; margin-bottom: 6px;">Welcome Back!</h2>
+            <p style="font-size: 0.875rem;">Sign in to your campus account</p>
+          </div>
+
+          <!-- Role Toggle Tabs -->
+          <div class="role-tabs">
+            <button type="button" class="role-tab active" id="tab-role-student" onclick="setLoginRole('STUDENT')">Student</button>
+            <button type="button" class="role-tab" id="tab-role-staff" onclick="setLoginRole('STAFF')">Staff</button>
+          </div>
+
+          <!-- Quick Fill Demo Pills (Helpful for Fast Exhibition Testing!) -->
+          <div style="margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+            <span style="font-size: 0.72rem; color: var(--text-dim); align-self: center;">Quick Demo:</span>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="fillDemoCredentials('student')">Alex (Student)</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="fillDemoCredentials('staff')">Rahul (Staff)</button>
+          </div>
+
+          <form id="form-login" onsubmit="handleLoginSubmit(event)">
+            <div class="form-group">
+              <label class="form-label" id="label-email-id">Email / Student ID</label>
+              <input type="text" id="login-email-id" class="form-control" placeholder="e.g. alex.student@campuspulse.edu or STU-2024-001" required>
+            </div>
+
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label class="form-label">Password</label>
+                <a href="javascript:void(0)" onclick="alert('For demo accounts, use password: Password@123')" style="font-size: 0.78rem;">Forgot password?</a>
+              </div>
+              <div style="position: relative;">
+                <input type="password" id="login-password" class="form-control" placeholder="Enter password" required>
+                <span onclick="togglePasswordVisibility('login-password')" style="position: absolute; right: 12px; top: 11px; cursor: pointer; color: var(--text-dim); font-size: 0.9rem;">👁️</span>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
+              <input type="checkbox" id="login-remember" checked style="accent-color: var(--cyan-primary); cursor: pointer;">
+              <label for="login-remember" style="font-size: 0.825rem; color: var(--text-muted); cursor: pointer;">Remember me</label>
+            </div>
+
+            <div id="login-error-msg" style="display: none; padding: 10px; margin-bottom: 14px; border-radius: var(--radius-sm); background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; font-size: 0.825rem;"></div>
+
+            <button type="submit" id="btn-login-submit" class="btn btn-primary btn-block">
+              <span>Sign In</span>
+            </button>
+          </form>
+
+          <div style="margin-top: 24px; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
+            Don't have an account? <a href="javascript:void(0)" onclick="showRegisterBox(true)">Register as Student</a>
+          </div>
+        </div>
+
+        <!-- Student Registration State -->
+        <div id="auth-register-box" style="display: none;">
+          <div style="margin-bottom: 18px;">
+            <h2 style="font-size: 1.5rem; margin-bottom: 4px;">Student Registration</h2>
+            <p style="font-size: 0.85rem;">Create your CampusPulse student profile</p>
+          </div>
+
+          <form id="form-register" onsubmit="handleRegisterSubmit(event)">
+            <div class="form-group">
+              <label class="form-label">Full Name *</label>
+              <input type="text" id="reg-name" class="form-control" placeholder="e.g. Alex Rivera" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">College Email *</label>
+              <input type="email" id="reg-email" class="form-control" placeholder="e.g. alex.student@campuspulse.edu" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label class="form-label">Student Roll / ID *</label>
+                <input type="text" id="reg-studentid" class="form-control" placeholder="STU-2024-001" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Department</label>
+                <input type="text" id="reg-department" class="form-control" placeholder="Computer Science">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Password * (min 6 characters)</label>
+              <input type="password" id="reg-password" class="form-control" placeholder="Create strong password" minlength="6" required>
+            </div>
+
+            <div id="reg-error-msg" style="display: none; padding: 10px; margin-bottom: 14px; border-radius: var(--radius-sm); background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; font-size: 0.825rem;"></div>
+
+            <button type="submit" id="btn-reg-submit" class="btn btn-primary btn-block">
+              <span>Create Account</span>
+            </button>
+          </form>
+
+          <div style="margin-top: 18px; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
+            Already have an account? <a href="javascript:void(0)" onclick="showRegisterBox(false)">Back to Sign In</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
+       AUTHENTICATED APP LAYOUT (SIDEBAR + MAIN CONTENT AREA)
+       ========================================================================= -->
+  <div id="app-layout" class="app-container" style="display: none;">
+    <!-- Left Navigation Sidebar -->
+    <aside class="sidebar" id="app-sidebar">
+      <div>
+        <div class="brand">
+          <div class="brand-icon">⚡</div>
+          <div>
+            <div class="brand-title">CampusPulse</div>
+            <div style="font-size: 0.72rem; color: var(--cyan-primary);">Smart Campus OS</div>
+          </div>
+        </div>
+
+        <ul class="nav-menu" id="sidebar-nav">
+          <!-- Dynamically populated based on student vs staff role -->
+        </ul>
+      </div>
+
+      <div class="sidebar-footer">
+        <a href="javascript:void(0)" class="nav-item" onclick="handleLogout()">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Bar Greeting & Profile Pill -->
+      <header class="top-header">
+        <div>
+          <h2 id="header-greeting" style="font-size: 1.6rem;">Good morning, Alex!</h2>
+          <p id="header-subtext" style="font-size: 0.875rem;">Here's what's happening with your campus issues.</p>
+        </div>
+        <div class="user-badge">
+          <div class="user-avatar" id="header-avatar">A</div>
+          <div>
+            <div id="header-user-name" style="font-weight: 700; font-size: 0.875rem; color: #fff;">Alex Rivera</div>
+            <div id="header-user-role" style="font-size: 0.72rem; color: var(--cyan-primary); text-transform: uppercase;">Student</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Global Alert / Notification Toast -->
+      <div id="app-notification" style="display: none; padding: 14px 18px; margin-bottom: 22px; border-radius: var(--radius-md); font-size: 0.875rem; transition: all 0.3s ease;"></div>
+
+
+      <!-- =====================================================================
+           SCREEN 2: STUDENT DASHBOARD
+           ===================================================================== -->
+      <section id="view-student-dashboard" class="app-view">
+        <!-- Hero Report Banner -->
+        <div class="card card-hero">
+          <div style="display: flex; align-items: center; gap: 18px;">
+            <div style="width: 52px; height: 52px; border-radius: var(--radius-full); background: rgba(0, 242, 254, 0.15); border: 1px solid var(--border-glow); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--cyan-primary);">
+              ⚡
+            </div>
+            <div>
+              <h3 style="font-size: 1.35rem; margin-bottom: 4px;">Report an Issue</h3>
+              <p style="font-size: 0.875rem; max-width: 480px;">Broken equipment, water leaks, electrical hazards, internet downtime, or classroom issues.</p>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="navigateTo('report')">
+            <span>+ Report New</span>
+          </button>
+        </div>
+
+        <!-- 4 Stat Counters -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-label">Total Complaints</span>
+            <span class="metric-value" id="stat-student-total">0</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Open</span>
+            <span class="metric-value" style="color: var(--status-submitted);" id="stat-student-open">0</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">In Progress</span>
+            <span class="metric-value" style="color: var(--status-in-progress);" id="stat-student-in-progress">0</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Resolved</span>
+            <span class="metric-value" style="color: var(--status-resolved);" id="stat-student-resolved">0</span>
+          </div>
+        </div>
+
+        <!-- Recent Complaints Table -->
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+            <h3 style="font-size: 1.15rem;">Recent Complaints</h3>
+            <a href="javascript:void(0)" onclick="navigateTo('my-complaints')" style="font-size: 0.825rem; font-weight: 600;">View All &rarr;</a>
+          </div>
+
+          <div class="table-container">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Ticket ID</th>
+                  <th>Title</th>
+                  <th>Location</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="student-recent-complaints-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- =====================================================================
+           SCREEN 3: REPORT A NEW ISSUE
+           ===================================================================== -->
+      <section id="view-report-issue" class="app-view" style="display: none;">
+        <div style="margin-bottom: 24px;">
+          <h2 style="font-size: 1.5rem; margin-bottom: 4px;">Report a New Issue</h2>
+          <p style="font-size: 0.875rem;">Tell us what needs fixing. Fill in the campus details below.</p>
+        </div>
+
+        <div class="card" style="max-width: 820px;">
+          <!-- QR pre-selection banner if location query param exists -->
+          <div id="qr-autofill-banner" style="display: none; background: rgba(0, 242, 254, 0.1); border: 1px solid var(--cyan-primary); padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 20px; align-items: center; gap: 12px;">
+            <span style="font-size: 1.4rem;">📱</span>
+            <div style="font-size: 0.85rem;">
+              <strong>QR Code Scanned:</strong> Location automatically selected as <span id="qr-autofill-location-name" style="color: var(--cyan-primary); font-weight: 700;"></span>
+            </div>
+          </div>
+
+          <form id="form-report-issue" onsubmit="handleReportSubmit(event)">
+            <!-- Title -->
+            <div class="form-group">
+              <label class="form-label">Issue Title *</label>
+              <input type="text" id="report-title" class="form-control" placeholder="e.g. Projector not working, Water leak in washroom, Electrical sparks" required oninput="handleIssueTextInput()">
+            </div>
+
+            <!-- Category & Location Row -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-group">
+                <label class="form-label">Category *</label>
+                <select id="report-category" class="form-control" required onchange="handleIssueTextInput()">
+                  <option value="">Select category</option>
+                  <option value="ELECTRICAL">Electrical</option>
+                  <option value="PLUMBING">Plumbing</option>
+                  <option value="CLEANLINESS">Cleanliness</option>
+                  <option value="INFRASTRUCTURE">Infrastructure</option>
+                  <option value="INTERNET">Internet</option>
+                  <option value="SAFETY">Safety</option>
+                  <option value="LABORATORY_EQUIPMENT">Laboratory Equipment</option>
+                  <option value="CLASSROOM_EQUIPMENT">Classroom Equipment</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Location / Building *</label>
+                <select id="report-location" class="form-control" required>
+                  <option value="">Select location</option>
+                  <!-- Populated from backend locations API -->
+                </select>
+              </div>
+            </div>
+
+            <!-- Severity Buttons -->
+            <div class="form-group">
+              <label class="form-label">Severity *</label>
+              <div class="severity-picker">
+                <div class="severity-btn" data-severity="LOW" onclick="selectSeverity('LOW')">Low</div>
+                <div class="severity-btn active" data-severity="MEDIUM" onclick="selectSeverity('MEDIUM')">Medium</div>
+                <div class="severity-btn" data-severity="HIGH" onclick="selectSeverity('HIGH')">High</div>
+                <div class="severity-btn" data-severity="CRITICAL" onclick="selectSeverity('CRITICAL')">Critical</div>
+              </div>
+              <input type="hidden" id="report-severity" value="MEDIUM">
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+              <label class="form-label">Description *</label>
+              <textarea id="report-description" class="form-control" placeholder="Describe the issue in detail, including exact spot or safety warnings..." required oninput="handleIssueTextInput()"></textarea>
+            </div>
+
+            <!-- Real-time Safety / AI Preview Indicator -->
+            <div id="ai-realtime-hint" style="display: none; padding: 12px 16px; border-radius: var(--radius-md); background: rgba(0, 242, 254, 0.08); border: 1px solid var(--border-glow); margin-bottom: 18px; font-size: 0.825rem;">
+              <span id="ai-realtime-text"></span>
+            </div>
+
+            <!-- Photo Upload Dropzone -->
+            <div class="form-group">
+              <label class="form-label">Attach Photo (Optional)</label>
+              <div class="upload-dropzone" id="report-dropzone" onclick="document.getElementById('report-photo-input').click()">
+                <svg class="upload-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <div style="font-weight: 600; font-size: 0.875rem;">Click to upload or drag and drop</div>
+                <div style="font-size: 0.75rem; color: var(--text-dim);">JPG, PNG, WEBP (Max 5MB)</div>
+                <input type="file" id="report-photo-input" accept="image/*" style="display: none;" onchange="handlePhotoSelect(event)">
+              </div>
+              <div id="photo-preview-box" style="display: none; margin-top: 10px; align-items: center; gap: 12px;">
+                <img id="photo-preview-img" src="" alt="Selected image" style="width: 60px; height: 60px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                <div style="font-size: 0.825rem;">
+                  <span id="photo-preview-name"></span>
+                  <a href="javascript:void(0)" onclick="clearPhotoSelection()" style="margin-left: 12px; color: #f87171;">Remove</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="btn-submit-issue" class="btn btn-primary btn-block" style="margin-top: 24px; padding: 13px;">
+              <span>Submit Issue</span>
+            </button>
+          </form>
+        </div>
+      </section>
+
+
+      <!-- =====================================================================
+           SCREEN 4: COMPLAINT DETAILS & TRACKING (STUDENT VIEW)
+           ===================================================================== -->
+      <section id="view-complaint-details" class="app-view" style="display: none;">
+        <div style="margin-bottom: 20px;">
+          <a href="javascript:void(0)" onclick="goBackFromDetails()" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 0.875rem; margin-bottom: 16px;">
+            &larr; <span id="back-nav-label">Back to My Complaints</span>
+          </a>
+
+          <!-- Details Card Header -->
+          <div class="card" style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                  <span id="detail-ticket-id" style="font-size: 1.35rem; font-weight: 800; color: #fff;">CP-1005</span>
+                  <span id="detail-priority-badge" class="badge badge-priority-high">High Priority</span>
+                  <span id="detail-source-badge" class="badge" style="background: rgba(255, 255, 255, 0.05); color: var(--text-dim);">Fallback Engine</span>
+                </div>
+                <h2 id="detail-title" style="font-size: 1.6rem; margin-bottom: 12px;">Projector not working</h2>
+                
+                <div style="display: flex; gap: 18px; flex-wrap: wrap; font-size: 0.85rem; color: var(--text-muted);">
+                  <div>🏷️ Category: <strong id="detail-category" style="color: #fff;">Classroom Equipment</strong></div>
+                  <div>📍 Location: <strong id="detail-location" style="color: #fff;">Block A - Room 201</strong></div>
+                  <div>🕒 Submitted: <span id="detail-submitted-date">27 Oct 2026, 10:24 AM</span></div>
+                </div>
+              </div>
+
+              <!-- Quick QR Thumbnail for Mobile Access -->
+              <div style="text-align: center; background: rgba(8, 14, 28, 0.6); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                <img id="detail-qr-img" src="" alt="Complaint QR" style="width: 80px; height: 80px; border-radius: var(--radius-sm); background: #fff; padding: 4px;">
+                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 6px;">Scan QR<br>Open on mobile</div>
+              </div>
+            </div>
+
+            <!-- Attached photo if present -->
+            <div id="detail-photo-container" style="display: none; margin-top: 20px;">
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Attached Photo:</div>
+              <img id="detail-photo-img" src="" alt="Attached issue photo" style="max-width: 320px; max-height: 200px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); object-fit: cover;">
+            </div>
+
+            <!-- Current Status Strip -->
+            <div style="margin-top: 20px; padding: 14px 18px; border-radius: var(--radius-md); background: rgba(14, 25, 48, 0.8); border: 1px solid var(--border-glow); display: flex; align-items: center; justify-content: space-between; flex-wrap: gap: 12px;">
+              <div>
+                <span style="font-size: 0.825rem; color: var(--text-muted);">Current Status: </span>
+                <span id="detail-current-status-badge" class="badge badge-in-progress" style="font-size: 0.85rem; margin-left: 6px;">In Progress</span>
+              </div>
+              <div id="detail-assigned-staff" style="font-size: 0.825rem; color: var(--text-muted);">
+                Assigned to: <strong style="color: #fff;" id="detail-assigned-staff-name">Rahul Sharma (Maintenance)</strong>
+              </div>
+            </div>
+
+            <!-- Issue Description -->
+            <div style="margin-top: 18px; font-size: 0.9rem; line-height: 1.6; color: var(--text-main); background: rgba(0,0,0,0.2); padding: 14px; border-radius: var(--radius-sm);">
+              <p id="detail-description"></p>
+            </div>
+          </div>
+
+          <!-- Two-column: Status Timeline & Remarks -->
+          <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px;">
+            <!-- Left: Status Timeline -->
+            <div class="card">
+              <h3 style="font-size: 1.15rem; margin-bottom: 16px;">Status Timeline</h3>
+              <div class="stepper" id="detail-stepper">
+                <!-- Dynamically filled with Submitted, Acknowledged, In Progress, Resolved -->
+              </div>
+            </div>
+
+            <!-- Right: Remarks Thread -->
+            <div class="card">
+              <h3 style="font-size: 1.15rem; margin-bottom: 14px;">Remarks & Updates</h3>
+              <div class="remarks-thread" id="detail-remarks-container">
+                <!-- Dynamically filled remarks -->
+              </div>
+
+              <!-- Add Remark Input Box -->
+              <form id="form-add-remark" onsubmit="handleAddRemarkSubmit(event)">
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="input-remark-text" class="form-control" placeholder="Add a comment or update..." required style="padding: 9px 12px; font-size: 0.85rem;">
+                  <button type="submit" class="btn btn-primary btn-sm">Send</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- =====================================================================
+           SCREEN 5: STAFF DASHBOARD
+           ===================================================================== -->
+      <section id="view-staff-dashboard" class="app-view" style="display: none;">
+        <!-- 6 Metric Cards -->
+        <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
+          <div class="metric-card">
+            <span class="metric-label">Total</span>
+            <span class="metric-value" id="staff-stat-total">0</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Submitted</span>
+            <span class="metric-value" style="color: var(--status-submitted);" id="staff-stat-submitted">0</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Open</span>
+            <span class="metric-value" style="color: var(--status-acknowledged);" id="staff-stat-open">0</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">In Progress</span>
+            <span class="metric-value" style="color: var(--status-in-progress);" id="staff-stat-in-progress">0</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Resolved</span>
+            <span class="metric-value" style="color: var(--status-resolved);" id="staff-stat-resolved">0</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Overdue</span>
+            <span class="metric-value" style="color: var(--status-overdue);" id="staff-stat-overdue">0</span>
+          </div>
+        </div>
+
+        <!-- Real Analytics Charts Row -->
+        <div style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 24px; margin-bottom: 28px;">
+          <!-- Donut Chart: By Status -->
+          <div class="card">
+            <h3 style="font-size: 1.1rem; margin-bottom: 14px;">Complaints by Status</h3>
+            <div style="position: relative; height: 230px; display: flex; justify-content: center;">
+              <canvas id="chart-by-status"></canvas>
+            </div>
+          </div>
+
+          <!-- Bar Chart: By Category -->
+          <div class="card">
+            <h3 style="font-size: 1.1rem; margin-bottom: 14px;">Complaints by Category</h3>
+            <div style="position: relative; height: 230px;">
+              <canvas id="chart-by-category"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search, Filter & Complaint List -->
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+            <h3 style="font-size: 1.15rem;">Campus Complaints Management</h3>
+            
+            <!-- Filters -->
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <input type="text" id="staff-search-input" class="form-control" placeholder="Search ticket, title, location..." style="width: 220px; padding: 7px 12px; font-size: 0.825rem;" oninput="debounceStaffFilter()">
+              <select id="staff-filter-status" class="form-control" style="width: 140px; padding: 7px 10px; font-size: 0.825rem;" onchange="loadStaffComplaints()">
+                <option value="ALL">All Status</option>
+                <option value="SUBMITTED">Submitted</option>
+                <option value="ACKNOWLEDGED">Acknowledged</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="RESOLVED">Resolved</option>
+              </select>
+              <select id="staff-filter-category" class="form-control" style="width: 150px; padding: 7px 10px; font-size: 0.825rem;" onchange="loadStaffComplaints()">
+                <option value="ALL">All Categories</option>
+                <option value="ELECTRICAL">Electrical</option>
+                <option value="PLUMBING">Plumbing</option>
+                <option value="CLEANLINESS">Cleanliness</option>
+                <option value="INFRASTRUCTURE">Infrastructure</option>
+                <option value="INTERNET">Internet</option>
+                <option value="SAFETY">Safety</option>
+                <option value="LABORATORY_EQUIPMENT">Lab Equipment</option>
+                <option value="CLASSROOM_EQUIPMENT">Classroom Equipment</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Ticket ID</th>
+                  <th>Title</th>
+                  <th>Location</th>
+                  <th>Priority Score</th>
+                  <th>Status</th>
+                  <th>Submitted By</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="staff-complaints-tbody">
+                <!-- Dynamically loaded -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- =====================================================================
+           SCREEN 6: STAFF COMPLAINT MANAGEMENT (DETAIL & ACTION SCREEN)
+           ===================================================================== -->
+      <section id="view-staff-management" class="app-view" style="display: none;">
+        <div style="margin-bottom: 20px;">
+          <a href="javascript:void(0)" onclick="navigateTo('staff-dashboard')" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 0.875rem; margin-bottom: 16px;">
+            &larr; Back to All Complaints
+          </a>
+
+          <div style="display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 24px;">
+            <!-- Left: Action & Details Box -->
+            <div class="card">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                <span id="staff-manage-ticket-id" style="font-size: 1.4rem; font-weight: 800; color: #fff;">CP-1005</span>
+                <span id="staff-manage-priority-badge" class="badge badge-priority-high">High Priority</span>
+                <span id="staff-manage-source-badge" class="badge" style="background: rgba(0, 242, 254, 0.1); color: var(--cyan-primary);">AI Analyzed</span>
+              </div>
+              <h2 id="staff-manage-title" style="font-size: 1.5rem; margin-bottom: 12px;">Projector not working</h2>
+
+              <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 18px;">
+                <div>🏷️ Category: <strong id="staff-manage-category" style="color: #fff;">Classroom Equipment</strong></div>
+                <div>📍 Location: <strong id="staff-manage-location" style="color: #fff;">Block A - Room 201</strong></div>
+                <div>👤 Reporter: <span id="staff-manage-student" style="color: #fff;">Alex Rivera</span></div>
+                <div>🕒 Submitted: <span id="staff-manage-date">27 Oct 2026, 10:24 AM</span></div>
+              </div>
+
+              <div style="background: rgba(0, 0, 0, 0.25); padding: 14px; border-radius: var(--radius-sm); font-size: 0.9rem; line-height: 1.5; margin-bottom: 24px;">
+                <p id="staff-manage-description"></p>
+              </div>
+
+              <!-- Status Update Action Card -->
+              <div style="background: rgba(14, 25, 48, 0.9); border: 1px solid var(--border-glow); border-radius: var(--radius-md); padding: 20px; margin-bottom: 24px;">
+                <h4 style="font-size: 0.95rem; margin-bottom: 12px; color: var(--cyan-primary);">Update Complaint Status</h4>
+                
+                <form id="form-update-status" onsubmit="handleStatusUpdateSubmit(event)">
+                  <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                    <select id="staff-manage-status-select" class="form-control" style="flex: 1;" required>
+                      <option value="SUBMITTED">Submitted</option>
+                      <option value="ACKNOWLEDGED">Acknowledged</option>
+                      <option value="IN_PROGRESS">In Progress</option>
+                      <option value="RESOLVED">Resolved</option>
+                      <option value="CLOSED">Closed</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                  </div>
+
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 0.8rem;">Staff Remarks (Optional, recorded to timeline):</label>
+                    <textarea id="staff-manage-remarks-input" class="form-control" style="min-height: 70px;" placeholder="Add remarks or technician dispatch notes..."></textarea>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Status History Timeline Table -->
+              <div>
+                <h4 style="font-size: 1rem; margin-bottom: 12px;">Status History</h4>
+                <div class="table-container">
+                  <table class="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Status</th>
+                        <th>Timestamp</th>
+                        <th>Acted By</th>
+                        <th>Remarks</th>
+                      </tr>
+                    </thead>
+                    <tbody id="staff-manage-history-tbody">
+                      <!-- Filled dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Priority Score Widget & Breakdown (Exact replica of screen 6) -->
+            <div>
+              <div class="priority-score-box">
+                <div style="font-size: 0.825rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim);">Priority Score</div>
+                <div class="score-number glow-text" id="score-box-number">78 / 100</div>
+                <div id="score-box-badge" class="badge badge-priority-high" style="font-size: 0.85rem;">High</div>
+
+                <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-subtle); text-align: left;">
+                  <h4 style="font-size: 0.9rem; color: #fff; margin-bottom: 8px;">Why this score?</h4>
+                  <ul class="score-breakdown-list" id="score-box-breakdown">
+                    <!-- Populated dynamically -->
+                  </ul>
+                </div>
+
+                <div style="margin-top: 20px; padding: 12px; background: rgba(0, 242, 254, 0.05); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.8rem; text-align: left;">
+                  <div style="color: var(--text-muted); margin-bottom: 4px;">Recommended Department:</div>
+                  <strong style="color: var(--cyan-primary);" id="score-box-department">AV & Facility Team</strong>
+                  <div style="color: var(--text-muted); margin-top: 8px; margin-bottom: 4px;">Safety Hazard Flag:</div>
+                  <strong id="score-box-safety" style="color: #fff;">No</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- =====================================================================
+           SCREEN 7: LOCATION QR CODES MANAGEMENT
+           ===================================================================== -->
+      <section id="view-qr-management" class="app-view" style="display: none;">
+        <div style="margin-bottom: 24px;">
+          <h2 style="font-size: 1.5rem; margin-bottom: 4px;">Campus Location QR Codes</h2>
+          <p style="font-size: 0.875rem;">Print and mount these QR codes across campus spots. When students scan with their phone camera, CampusPulse opens with the location pre-selected.</p>
+        </div>
+
+        <div class="card" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <span style="font-size: 0.825rem; color: var(--text-muted);">Configured QR Target Base URL: </span>
+            <code id="qr-display-base-url" style="color: var(--cyan-primary); background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px;">http://localhost:8080</code>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="window.print()">
+            <span>🖨️ Print All Codes</span>
+          </button>
+        </div>
+
+        <div class="qr-grid" id="qr-locations-grid">
+          <!-- Dynamically populated cards with real ZXing Java QR codes -->
+        </div>
+      </section>
+
+
+      <!-- =====================================================================
+           SCREEN 8: HELP & ABOUT PAGE
+           ===================================================================== -->
+      <section id="view-help" class="app-view" style="display: none;">
+        <div style="margin-bottom: 24px;">
+          <h2 style="font-size: 1.5rem; margin-bottom: 4px;">Help & About</h2>
+          <p style="font-size: 0.875rem;">Everything you need to know about using CampusPulse.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px;">
+          <!-- Left Content -->
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="card">
+              <h3 style="font-size: 1.15rem; margin-bottom: 8px;">What is CampusPulse?</h3>
+              <p style="font-size: 0.9rem; line-height: 1.6;">
+                CampusPulse is a smart campus issue management system that helps students and staff report, track, and resolve campus problems quickly and efficiently. It combines QR location tags, intelligent prioritization, and status lifecycle tracking.
+              </p>
+            </div>
+
+            <div class="card">
+              <h3 style="font-size: 1.15rem; margin-bottom: 12px;">How does it work?</h3>
+              <ol style="padding-left: 20px; font-size: 0.9rem; line-height: 1.8; color: var(--text-muted);">
+                <li><strong>Report an issue</strong> with details, location, and optional photo.</li>
+                <li><strong>Get a ticket ID</strong> (e.g. CP-1005) and track real-time progress.</li>
+                <li><strong>Staff reviews and updates</strong> the issue as work advances.</li>
+                <li><strong>Receive verified updates</strong> until it is marked Resolved.</li>
+              </ol>
+            </div>
+
+            <div class="card">
+              <h3 style="font-size: 1.15rem; margin-bottom: 8px;">Priority Scoring & AI Engine</h3>
+              <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 12px;">
+                Priorities are computed using user severity, detected safety hazard keywords (sparks, water leaks, gas, broken glass), location vulnerability (laboratories, restrooms), and wait time.
+              </p>
+              <div style="padding: 12px; background: rgba(0, 242, 254, 0.05); border: 1px solid var(--border-glow); border-radius: var(--radius-md); font-size: 0.85rem;">
+                <strong>Local Fallback Mode:</strong> If Claude or Gemini API is unreachable, offline, or lacks an API key, CampusPulse deterministically scores the issue in Java so no report is ever blocked or lost.
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Sidebar: Quick Links & Contact -->
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="card">
+              <h3 style="font-size: 1.1rem; margin-bottom: 14px;">Quick Links</h3>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn btn-secondary btn-block" style="justify-content: flex-start;" onclick="navigateTo('report')">⚡ Report an Issue</button>
+                <button class="btn btn-secondary btn-block" style="justify-content: flex-start;" onclick="navigateTo('my-complaints')">📋 Track a Complaint</button>
+                <button class="btn btn-secondary btn-block" style="justify-content: flex-start;" onclick="navigateTo('qr-codes')">📱 Scan QR Codes</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 style="font-size: 1.1rem; margin-bottom: 10px;">Contact Us</h3>
+              <p style="font-size: 0.85rem; margin-bottom: 12px;">Campus Maintenance & IT Support Desk</p>
+              <div style="font-size: 0.875rem; color: #fff; display: flex; flex-direction: column; gap: 8px;">
+                <div>✉️ support@campuspulse.edu</div>
+                <div>📞 +91 98765 43210</div>
+                <div>📍 Central Block, Ground Floor Room G-12</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SCREEN: MY COMPLAINTS LIST (STUDENT VIEW)
+           ===================================================================== -->
+      <section id="view-my-complaints" class="app-view" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h2 style="font-size: 1.5rem; margin-bottom: 4px;">My Complaints</h2>
+            <p style="font-size: 0.875rem;">All campus issues reported by your account.</p>
+          </div>
+          <button class="btn btn-primary" onclick="navigateTo('report')">+ Report New Issue</button>
+        </div>
+
+        <div class="card">
+          <div class="table-container">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Ticket ID</th>
+                  <th>Title</th>
+                  <th>Location</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="student-all-complaints-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+
+  <!-- =========================================================================
+       SCREEN 9: MOBILE BOTTOM NAVIGATION BAR (FOR SMARTPHONES)
+       ========================================================================= -->
+  <nav class="mobile-nav" id="mobile-bottom-nav">
+    <!-- Populated dynamically based on role -->
+  </nav>
+
+  <!-- Application Logic -->
+  <script src="js/app.js"></script>
+</body>
+</html>
